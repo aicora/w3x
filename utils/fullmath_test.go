@@ -30,8 +30,8 @@ func TestMulDiv(t *testing.T) {
 			continue
 		}
 		require.NoError(t, err)
-		gotUint64 := got.Uint64()
-		require.Equal(t, tt.want, gotUint64)
+		gotint64 := got.Int64()
+		require.Equal(t, tt.want, gotint64)
 	}
 }
 
@@ -58,8 +58,8 @@ func TestMulDivRoundingUp(t *testing.T) {
 			continue
 		}
 		require.NoError(t, err)
-		gotUint64 := got.Uint64()
-		require.Equal(t, tt.want, gotUint64)
+		gotint64 := got.Int64()
+		require.Equal(t, tt.want, gotint64)
 	}
 }
 
@@ -79,8 +79,8 @@ func TestMulMod(t *testing.T) {
 		m := big.NewInt(tt.m)
 
 		got := MulMod(a, b, m)
-		gotUint64 := got.Uint64()
-		require.Equal(t, tt.want, gotUint64)
+		gotint64 := got.Int64()
+		require.Equal(t, tt.want, gotint64)
 	}
 }
 
