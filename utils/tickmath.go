@@ -159,7 +159,7 @@ var (
 // - Returns the tick index and error if input is out of bounds.
 // This implements Uniswap v3's logarithmic approximation for gas-efficient tick calculation.
 func GetTickAtSqrtPrice(sqrtPriceX96 *big.Int) (int, error) {
-	if sqrtPriceX96.Cmp(MinSqrtPrice) < 0 || sqrtPriceX96.Cmp(MaxSqrtPrice) >= 0 {
+	if sqrtPriceX96.Cmp(MinSqrtPrice) < 0 || sqrtPriceX96.Cmp(MaxSqrtPrice) > 0 {
 		return 0, ErrInvalidSqrtPrice
 	}
 	// Scale to Q128.128 for computation
