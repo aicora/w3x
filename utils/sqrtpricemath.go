@@ -16,7 +16,7 @@ var (
 // SqrtPriceX96 calculates the square root of a token1/token0 ratio
 // and returns it in Q64.96 fixed-point format using big.Int arithmetic.
 //
-// This is commonly used in AMM pools (e.g., Uniswap v3) to encode the
+// This is commonly used in AMM pools (e.g., Uniswap v4) to encode the
 // price ratio in a compact high-precision format suitable for tick calculations.
 //
 // Formula:
@@ -49,7 +49,7 @@ func SqrtPriceX96(amount1, amount0 *big.Int) (*big.Int, error) {
 // GetAmount0Delta calculates the amount of token0 required for a given
 // liquidity between two sqrt price ratios, using big.Int arithmetic.
 //
-// This is equivalent to the Uniswap v3 formula:
+// This is equivalent to the Uniswap v4 formula:
 //     amount0 = L * (sqrtPriceB - sqrtPriceA) / (sqrtPriceB * sqrtPriceA)
 //
 // Parameters:
@@ -103,7 +103,7 @@ func GetAmount0Delta(sqrtPriceAX96, sqrtPriceBX96, liquidity *big.Int, roundUp b
 // GetAmount1Delta calculates the amount of token1 required for a given
 // liquidity between two sqrt price ratios, using big.Int arithmetic.
 //
-// This is equivalent to the Uniswap v3 formula:
+// This is equivalent to the Uniswap v4 formula:
 //     amount1 = L * (sqrtPriceB - sqrtPriceA) / 2^96
 //
 // Parameters:
@@ -143,7 +143,7 @@ func GetAmount1Delta(sqrtPriceAX96, sqrtPriceBX96, liquidity *big.Int, roundUp b
 // getNextSqrtPriceFromAmount1RoundingDown computes the next sqrt price
 // (Q64.96) given a change in token1 amount.
 //
-// This is equivalent to the Uniswap v3 formula:
+// This is equivalent to the Uniswap v4 formula:
 // 	add: sqrtPriceNext = sqrtPriceX96 + (amount1 / liquidity)
 // 	remove: sqrtPriceNext = sqrtPriceX96 - (amount1 / liquidity)
 //
@@ -186,7 +186,7 @@ func GetNextSqrtPriceFromAmount1RoundingDown(sqrtPriceX96, liquidity, amount *bi
 // GetNextSqrtPriceFromAmount0RoundingUp calculates the next sqrt price
 // after adding or removing a given amount of token0, using big.Int arithmetic.
 //
-// This implements the Uniswap v3 formula for token0:
+// This implements the Uniswap v4 formula for token0:
 //   add: sqrtPriceNext = (L * sqrtPriceX96) / (L + (amount0 * sqrtPriceX96))
 //   remove: sqrtPriceNext = (L * sqrtPriceX96) / (L - (amount0 * sqrtPriceX96))
 //

@@ -28,7 +28,7 @@ func NewTickBitmap() *TickBitmap {
 
 // compress calculates the "compressed tick" by dividing the tick by tickSpacing.
 // For negative ticks not aligned exactly, it decrements the result to maintain consistency.
-func compress(tick int32, tickSpacing int32) int32 {
+func compress(tick int, tickSpacing int) int {
 	c := tick / tickSpacing
 	if tick < 0 && tick%tickSpacing != 0 {
 		c--
@@ -39,7 +39,7 @@ func compress(tick int32, tickSpacing int32) int32 {
 // position computes the word index and bit position of a compressed tick in the bitmap.
 // wordPos: the index of the 256-bit word containing the tick.
 // bitPos: the bit position (0-255) within the word.
-func position(tick int32) (wordPos int16, bitPos uint8) {
+func position(tick int) (wordPos int16, bitPos uint8) {
 	wordPos = int16(tick >> 8)
 	bitPos = uint8(tick & 0xff)
 	return
@@ -53,7 +53,7 @@ func position(tick int32) (wordPos int16, bitPos uint8) {
 //
 // Returns:
 //   - true if the tick is initialized, false otherwise
-func (tb *TickBitmap) IsInitialized(tick int32, tickSpacing int32) bool {
+func (tb *TickBitmap) IsInitialized(tick int, tickSpacing int) bool {
 	if tick%tickSpacing != 0 {
 		return false // misaligned ticks cannot be initialized
 	}
@@ -80,7 +80,7 @@ func (tb *TickBitmap) IsInitialized(tick int32, tickSpacing int32) bool {
 //
 // Returns:
 //   - error: ErrTickMisaligned if tick is not aligned with tickSpacing
-func (tb *TickBitmap) FlipTick(tick int32, tickSpacing int32) error {
+func (tb *TickBitmap) FlipTick(tick int, tickSpacing int) error {
 	if tick%tickSpacing != 0 {
 		return ErrTickMisaligned
 	}
@@ -112,7 +112,7 @@ func (tb *TickBitmap) FlipTick(tick int32, tickSpacing int32) error {
 //   - next: the next initialized tick (or boundary if none exists)
 //   - initialized: true if an initialized tick was found
 //   - err: any error occurred during bit scanning
-func (tb *TickBitmap) NextInitializedTickWithinOneWord(tick int32, tickSpacing int32, lte bool) (next int32, initialized bool, err error) {
+func (tb *TickBitmap) NextInitializedTickWithinOneWord(tick int, tickSpacing int, lte bool) (next int, initialized bool, err error) {
 	compressed := compress(tick, tickSpacing)
 
 	if lte {
@@ -129,7 +129,7 @@ func (tb *TickBitmap) NextInitializedTickWithinOneWord(tick int32, tickSpacing i
 
 		if masked.Sign() == 0 {
 			// No initialized ticks ≤ current tick in this word
-			return (compressed - int32(bitPos)) * tickSpacing, false, nil
+			return (compressed - int(bitPos)) * tickSpacing, false, nil
 		}
 
 		// Find most significant bit (highest initialized tick ≤ compressed)
@@ -137,7 +137,7 @@ func (tb *TickBitmap) NextInitializedTickWithinOneWord(tick int32, tickSpacing i
 		if err != nil {
 			return 0, false, err
 		}
-		return (compressed - int32(int(bitPos)-msb)) * tickSpacing, true, nil
+		return (compressed - (int(bitPos)-msb)) * tickSpacing, true, nil
 	} else {
 		compressed++
 		wordPos, bitPos := position(compressed)
@@ -150,7 +150,7 @@ func (tb *TickBitmap) NextInitializedTickWithinOneWord(tick int32, tickSpacing i
 		mask := new(big.Int).Rsh(new(big.Int).Set(word), uint(bitPos)) 
 		if mask.Sign() == 0 {
 			// No initialized ticks > current tick in this word
-			return (compressed + int32(255-bitPos)) * tickSpacing, false, nil
+			return (compressed + int(255-bitPos)) * tickSpacing, false, nil
 		}
 
 		// Find least significant bit (lowest initialized tick ≥ compressed)
@@ -158,6 +158,6 @@ func (tb *TickBitmap) NextInitializedTickWithinOneWord(tick int32, tickSpacing i
 		if err != nil {
 			return 0, false, err
 		}
-		return (compressed + int32(lsb)) * tickSpacing, true, nil
+		return (compressed + int(lsb)) * tickSpacing, true, nil
 	}
 }

@@ -18,10 +18,13 @@ var (
 	MinSqrtPrice = big.NewInt(4295128739)
 
 	// MaxSqrtPrice is the Q64.96 square root ratio corresponding to MaxTick.
-	// Source: Uniswap v3 specification
+	// Source: Uniswap v4 specification
 	MaxSqrtPrice, _ = new(big.Int).SetString(
 		"1461446703485210103287273052203988822378723970342", 10,
 	)
+
+	// MaxLiquidity is the maximum amount of liquidity that can be provided to a pool.
+	MaxLiquidity = new(big.Int).Sub(Q128, big.NewInt(1))
 )
 
 var (
@@ -30,6 +33,8 @@ var (
 	ErrTicksMisordered     = errors.New("ticks misordered")
     ErrTickLowerOutOfBounds = errors.New("tickLower out of bounds")
     ErrTickUpperOutOfBounds = errors.New("tickUpper out of bounds")
+	ErrZeroTickSpacing = errors.New("tickSpacing cannot be zero")
+	ErrInvalidTickRange = errors.New("invalid tick range")
 )
 
 // mulShift multiplies val by mulBy and then right-shifts the result by 128 bits.
@@ -39,7 +44,7 @@ func mulShift(val *big.Int, mulBy *big.Int) *big.Int {
 }
 
 // Precomputed constants used in the GetSqrtPriceAtTick calculation.
-// These constants mirror Uniswap v3's on-chain constants for fast sqrt price computation.
+// These constants mirror Uniswap v4's on-chain constants for fast sqrt price computation.
 var (
 	sqrtConst1, _  = new(big.Int).SetString("fffcb933bd6fad37aa2d162d1a594001", 16)
 	sqrtConst2, _  = new(big.Int).SetString("100000000000000000000000000000000", 16)
@@ -67,7 +72,7 @@ var (
 // GetSqrtPriceAtTick returns the square root price (Q64.96) for a given tick.
 // - tick: The tick index (must be between MinTick and MaxTick).
 // - Returns a *big.Int representing sqrtPriceX96.
-// This mirrors the Uniswap v3 on-chain logic for gas-efficient fixed-point computation.
+// This mirrors the Uniswap v4 on-chain logic for gas-efficient fixed-point computation.
 func GetSqrtPriceAtTick(tick int) (*big.Int, error) {
 	if tick < MinTick || tick > MaxTick {
 		return nil, ErrInvalidTick
@@ -161,7 +166,7 @@ var (
 // GetTickAtSqrtPrice returns the nearest tick index corresponding to a given sqrtPriceX96.
 // - sqrtPriceX96: The square root price in Q64.96 format.
 // - Returns the tick index and error if input is out of bounds.
-// This implements Uniswap v3's logarithmic approximation for gas-efficient tick calculation.
+// This implements Uniswap v4's logarithmic approximation for gas-efficient tick calculation.
 func GetTickAtSqrtPrice(sqrtPriceX96 *big.Int) (int, error) {
 	if sqrtPriceX96.Cmp(MinSqrtPrice) < 0 || sqrtPriceX96.Cmp(MaxSqrtPrice) > 0 {
 		return 0, ErrInvalidSqrtPrice
@@ -249,4 +254,51 @@ func CheckTicks(tickLower, tickUpper int32) error {
         return errors.Wrapf(ErrTickUpperOutOfBounds, "tickUpper=%d > MaxTick=%d", tickUpper, MaxTick)
     }
     return nil
+}
+
+// TickSpacingToMaxLiquidityPerTick calculates the maximum liquidity allowed per tick
+// given a specific tick spacing. This is used when adding liquidity to a pool
+// to ensure that each tick does not exceed its maximum allowed liquidity.
+//
+// In Uniswap v4, the total liquidity is conceptually spread across all valid ticks.
+// The function divides the maximum total liquidity (`MaxLiquidity`) evenly among
+// all ticks that are multiples of `tickSpacing`.
+//
+// Parameters:
+//   - tickSpacing: the required separation between initialized ticks. For example,
+//     a tickSpacing of 3 allows ticks to be initialized at ..., -6, -3, 0, 3, 6, ...
+//
+// Returns:
+//   - *big.Int: the maximum liquidity that can be assigned to a single tick.
+//   - error: if tickSpacing is zero or the tick range is invalid.
+//
+// Errors:
+//   - ErrZeroTickSpacing: returned when tickSpacing is zero.
+//   - ErrInvalidTickRange: returned if computed number of ticks is non-positive.
+//
+// Example usage:
+//
+//     maxLiquidityPerTick, err := TickSpacingToMaxLiquidityPerTick(60)
+//     if err != nil {
+//         log.Fatal(err)
+//     }
+//     fmt.Println("Max liquidity per tick:", maxLiquidityPerTick)
+func TickSpacingToMaxLiquidityPerTick(tickSpacing int) (*big.Int, error) {
+	if tickSpacing == 0 {
+		return nil, ErrZeroTickSpacing
+	}
+
+	minTick := MinTick / tickSpacing
+	if MinTick%tickSpacing != 0 {
+		minTick -= 1
+	}
+
+	maxTick := MaxTick / tickSpacing
+
+	numTicks := maxTick - minTick + 1
+	if numTicks <= 0 {
+		return nil, ErrInvalidTickRange
+	}
+
+	return new(big.Int).Div(MaxLiquidity, big.NewInt(int64(numTicks))), nil
 }

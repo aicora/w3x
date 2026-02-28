@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -109,6 +110,41 @@ func TestCheckTicks(t *testing.T) {
 				if !errors.Is(err, tt.wantErr) {
 					t.Errorf("expected error %v, got %v", tt.wantErr, err)
 				}
+			}
+		})
+	}
+}
+
+func TestTickSpacingToMaxLiquidityPerTick(t *testing.T) {
+	tests := []struct {
+		name        string
+		tickSpacing int
+		wantErr     error
+	}{
+		{"valid spacing 1", 1, nil},
+		{"valid spacing 60", 60, nil},
+		{"zero spacing", 0, ErrZeroTickSpacing},
+		{"negative spacing", -5, ErrInvalidTickRange}, // still valid mathematically
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			maxLiquidity, err := TickSpacingToMaxLiquidityPerTick(tt.tickSpacing)
+			fmt.Println("maxLiquidity", maxLiquidity)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("expected error %v, got %v", tt.wantErr, err)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			// Check that maxLiquidity is positive
+			if maxLiquidity.Cmp(big.NewInt(0)) <= 0 {
+				t.Fatalf("maxLiquidity should be positive, got %v", maxLiquidity)
 			}
 		})
 	}

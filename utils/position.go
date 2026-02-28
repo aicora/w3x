@@ -22,7 +22,7 @@ import (
 // Notes:
 //   - The owner address must be exactly 20 bytes to match Solidity's address type.
 //   - tickLower and tickUpper use only the lower 24 bits to emulate Solidity int24 encoding.
-//   - The returned key is fully compatible with Uniswap v3/v4 on-chain position mappings.
+//   - The returned key is fully compatible with Uniswap v4 on-chain position mappings.
 func CalculatePositionKey(owner common.Address, tickLower, tickUpper int32, salt [32]byte) [32]byte {
 	buf := make([]byte, 0, 58)
 

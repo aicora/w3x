@@ -8,7 +8,7 @@ import (
 func TestTickManager_Get(t *testing.T) {
 	tm := NewTickManager()
 
-	tick := int32(10)
+	tick := int(10)
 	info := tm.Get(tick)
 	if info == nil {
 		t.Fatal("Get returned nil")
@@ -34,8 +34,8 @@ func TestTickManager_Get(t *testing.T) {
 
 func TestTickManager_IsInitialized(t *testing.T) {
 	tm := NewTickManager()
-	tick := int32(10)
-	tickSpacing := int32(1)
+	tick := int(10)
+	tickSpacing := int(1)
 	if tm.IsInitialized(tick, tickSpacing) {
 		t.Fatal("tick should not be initialized initially")
 	}
@@ -43,8 +43,8 @@ func TestTickManager_IsInitialized(t *testing.T) {
 
 func TestTickManager_FlipTick(t *testing.T) {
 	tm := NewTickManager()
-	tick := int32(10)
-	tickSpacing := int32(1)
+	tick := int(10)
+	tickSpacing := int(1)
 
 	found := tm.IsInitialized(tick, tickSpacing)
 	if found {
@@ -71,9 +71,9 @@ func TestTickManager_FlipTick(t *testing.T) {
 
 func TestTickManager_NextInitializedTickWithinOneWord(t *testing.T) {
 	tm := NewTickManager()
-	tickSpacing := int32(1)
+	tickSpacing := int(1)
 
-	ticks := []int32{5, 10, 15}
+	ticks := []int{5, 10, 15}
 	for _, tk := range ticks {
 		_ = tm.FlipTick(tk, tickSpacing)
 	}

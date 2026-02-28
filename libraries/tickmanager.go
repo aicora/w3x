@@ -30,14 +30,17 @@ type TickInfo struct {
 type ITickManager interface {
 	// Get returns the TickInfo for a given tick.
 	// If the tick does not exist, it initializes a new TickInfo with zero values.
-	Get(tick int32) *TickInfo
+	Get(tick int) *TickInfo
+
+	// Clear clears the TickInfo for a given tick.
+	Clear(tick int)
 
 	// IsInitialized checks if the specified tick is initialized in the underlying bitmap.
-	IsInitialized(tick int32, tickSpacing int32) bool
+	IsInitialized(tick int, tickSpacing int) bool
 
 	// FlipTick flips the initialized state of the tick in the underlying bitmap.
 	// If the tick was previously uninitialized, it becomes initialized, and vice versa.
-	FlipTick(tick int32, tickSpacing int32) error
+	FlipTick(tick int, tickSpacing int) error
 
 	// NextInitializedTickWithinOneWord finds the next initialized tick within a 256-bit word.
 	//
@@ -50,7 +53,7 @@ type ITickManager interface {
 	// - the next initialized tick
 	// - a boolean indicating if a tick was found
 	// - an error if the search fails
-	NextInitializedTickWithinOneWord(tick int32, tickSpacing int32, lte bool) (int32, bool, error)
+	NextInitializedTickWithinOneWord(tick int, tickSpacing int, lte bool) (int, bool, error)
 }
 
 // TickManager manages all ticks in the pool and provides efficient operations for
@@ -60,7 +63,7 @@ type ITickManager interface {
 // for efficient navigation of initialized ticks.
 type TickManager struct {
 	// infos maps a tick index to its TickInfo data.
-	infos map[int32]*TickInfo
+	infos map[int]*TickInfo
 
 	// bitmap is a helper structure used to efficiently track initialized ticks
 	// and navigate between them.
@@ -70,7 +73,7 @@ type TickManager struct {
 // NewTickManager creates and returns a new TickManager instance.
 func NewTickManager() *TickManager {
 	return &TickManager{
-		infos: make(map[int32]*TickInfo),
+		infos: make(map[int]*TickInfo),
 		bitmap:    NewTickBitmap(),
 	}
 }
@@ -79,7 +82,7 @@ func NewTickManager() *TickManager {
 // creates a new TickInfo with all values initialized to zero.
 //
 // This ensures that any tick queried always returns a valid TickInfo struct.
-func (tm *TickManager) Get(tick int32) *TickInfo {
+func (tm *TickManager) Get(tick int) *TickInfo {
 	info, exists := tm.infos[tick]
 	if !exists {
 		info = &TickInfo{
@@ -93,8 +96,13 @@ func (tm *TickManager) Get(tick int32) *TickInfo {
 	return info
 }
 
+// Clear deletes the TickInfo for a given tick.
+func (t *TickManager) Clear(tick int) {
+	delete(t.infos, tick)
+}
+
 // IsInitialized checks if the specified tick is initialized in the underlying bitmap.
-func (tm *TickManager) IsInitialized(tick int32, tickSpacing int32) bool {
+func (tm *TickManager) IsInitialized(tick int, tickSpacing int) bool {
 	return tm.bitmap.IsInitialized(tick, tickSpacing)
 }
 
@@ -102,7 +110,7 @@ func (tm *TickManager) IsInitialized(tick int32, tickSpacing int32) bool {
 //
 // A tick is considered "initialized" if it has any liquidity associated with it.
 // Flipping changes its state from initialized to uninitialized or vice versa.
-func (tm *TickManager) FlipTick(tick int32, tickSpacing int32) error {
+func (tm *TickManager) FlipTick(tick int, tickSpacing int) error {
 	return tm.bitmap.FlipTick(tick, tickSpacing)
 }
 
@@ -121,6 +129,6 @@ func (tm *TickManager) FlipTick(tick int32, tickSpacing int32) error {
 // - the next initialized tick index
 // - a boolean indicating if a tick was found
 // - an error if something went wrong
-func (tm *TickManager) NextInitializedTickWithinOneWord(tick int32, tickSpacing int32, lte bool) (int32, bool, error) {
+func (tm *TickManager) NextInitializedTickWithinOneWord(tick int, tickSpacing int, lte bool) (int, bool, error) {
 	return tm.bitmap.NextInitializedTickWithinOneWord(tick, tickSpacing, lte)
 }

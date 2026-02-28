@@ -6,8 +6,8 @@ import (
 
 func TestTickBitmap_FlipAndIsInitialized(t *testing.T) {
 	tb := NewTickBitmap()
-	tick := int32(10)
-	tickSpacing := int32(1)
+	tick := int(10)
+	tickSpacing := int(1)
 
 	if tb.IsInitialized(tick, tickSpacing) {
 		t.Fatal("tick should not be initialized initially")
@@ -31,8 +31,8 @@ func TestTickBitmap_FlipAndIsInitialized(t *testing.T) {
 
 func TestTickBitmap_FlipTick(t *testing.T) {
 	tb := NewTickBitmap()
-	tickSpacing := int32(10)
-	tick := int32(20)
+	tickSpacing := int(10)
+	tick := int(20)
 
 	// Flip tick to initialized
 	if err := tb.FlipTick(tick, tickSpacing); err != nil {
@@ -56,7 +56,7 @@ func TestTickBitmap_FlipTick(t *testing.T) {
 
 func TestNextInitializedTickWithinOneWord(t *testing.T) {
 	tb := NewTickBitmap()
-	tickSpacing := int32(10)
+	tickSpacing := int(10)
 
 	// Initialize some ticks
 	tb.FlipTick(20, tickSpacing)
