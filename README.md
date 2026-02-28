@@ -27,12 +27,12 @@ It’s designed for centralized engines, simulation, backtesting, and quoting en
 
 Detailed changes for each release are documented in the [release notes](https://github.com/aicora/go-uniswap/releases).
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=aicora/go-uniswap&type=timeline&legend=top-left)](https://www.star-history.com/#aicora/go-uniswap&type=timeline&legend=top-left)
+
 ## License
 
 [MIT](https://opensource.org/licenses/MIT)
 
-Copyright (c) 2013-present, Yuxi (Evan) You
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=aicora/go-uniswap&type=timeline&legend=top-left)](https://www.star-history.com/#aicora/go-uniswap&type=timeline&legend=top-left)
+Copyright (c) 2026-present, Aicora
