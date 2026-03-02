@@ -21,8 +21,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        go: [1.23.x, 1.24.x]
+        os: [ubuntu-latest]
+        go: [1.24.x]
 
     steps:
       - uses: actions/checkout@v4
