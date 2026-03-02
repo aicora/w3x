@@ -19,45 +19,57 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      # Extract tag name
       - name: Extract tag
         run: |
           echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           echo "Release tag: $TAG"
 
+      # Ensure tag is created from main branch
       - name: Ensure tag from main branch
         run: |
+          git fetch origin main --depth=1 
           BRANCH=$(git branch --contains $GITHUB_SHA | grep main || true)
           if [ -z "$BRANCH" ]; then
             echo "Tag must be created from main branch"
             exit 1
           fi
 
+      # Setup Go environment
       - uses: actions/setup-go@v5
         with:
           go-version: 1.24.x
           cache: true
 
+      # Verify dependencies
       - name: Verify go.mod tidy
-        run: |
-          go mod tidy
+        run: go mod tidy
 
+      # Run tests
       - name: Run tests
         run: go test -race ./...
 
+      # Verify build
       - name: Verify build
         run: go build ./...
 
+      # Run short fuzz tests
       - name: Run short fuzz tests
         run: go test -fuzz=Fuzz -fuzztime=5s ./... || echo "No fuzz tests defined"
 
+      # Verify module download
       - name: Verify module download
         run: go mod download
 
+      # Generate changelog
       - name: Generate changelog
         run: |
           git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD > CHANGELOG.txt || echo "Initial release" > CHANGELOG.txt
 
+      # Create GitHub Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

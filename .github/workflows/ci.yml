@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   test:
@@ -32,8 +33,7 @@ jobs:
           cache: true
 
       - name: Verify go.mod tidy
-        run: |
-          go mod tidy
+        run: go mod tidy
 
       - name: Vet
         run: go vet ./...
@@ -45,9 +45,11 @@ jobs:
         run: go test -v -race -coverprofile=coverage.out ./...
 
       - name: Enforce Coverage >= 80%
+        id: coverage
         run: |
           total=$(go tool cover -func=coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
           echo "Coverage: $total%"
+          echo "coverage=$total" >> $GITHUB_OUTPUT
           awk "BEGIN {exit !($total >= 80)}"
 
       - name: Upload coverage reports to Codecov
@@ -58,3 +60,12 @@ jobs:
           fail_ci_if_error: true
           verbose: true
           name: "Go-${{ matrix.go }}-${{ matrix.os }}"
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Go Test Coverage: **${{ steps.coverage.outputs.coverage }}%**
