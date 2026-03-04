@@ -39,6 +39,6 @@ Thank you to all the people who already contributed to go-uniswap!
 
 ## License
 
-[GPL-2.0](https://opensource.org/license/gpl-2-0-only)
+[MIT](https://opensource.org/licenses/MIT)
 
 Copyright (c) 2026-present, Aicora
