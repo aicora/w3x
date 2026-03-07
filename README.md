@@ -25,11 +25,3 @@ Detailed changes for each release are documented in the [release notes](https://
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/image?repos=aicora/w3x&type=timeline&legend=top-left)](https://www.star-history.com/?type=timeline&legend=top-left&repos=aicora%2Fw3x)
-
-## Contribution
-
-Thank you to all the people who already contributed to w3x!
-
-<a href="https://github.com/aicora/w3x/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=aicora/w3x" />
-</a>
